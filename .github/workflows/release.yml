@@ -2,11 +2,11 @@ name: Build and Release
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
-  push:
-  pull_request:
-    types: [opened, synchronize, reopened]
+    inputs:
+      commit:
+        description: "Commit SHA to build"
+        required: true
+        type: string
 
 jobs:
   check-assets:
@@ -152,8 +152,10 @@ jobs:
       GOARM: ${{ matrix.goarm }}
       CGO_ENABLED: 0
     steps:
-      - name: Checkout codebase
+      - name: Checkout specified commit
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.commit }}
 
       - name: Set up NDK
         if: matrix.goos == 'android'
@@ -187,7 +189,7 @@ jobs:
       - name: Build Xray
         run: |
           mkdir -p build_assets
-          COMMID=$(git describe --always --dirty)
+          COMMID=${{ github.event.inputs.commit }}
           if [[ ${GOOS} == 'windows' ]]; then
             echo 'Building Xray for Windows...'
             go build -o build_assets/xray.exe -trimpath -buildvcs=false -gcflags="all=-l=4" -ldflags="-X github.com/xtls/xray-core/core.build=${COMMID} -s -w -buildid=" -v ./main
