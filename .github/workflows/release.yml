@@ -7,6 +7,9 @@ on:
 jobs:
   check-assets:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write  # Required to trigger another workflow
+      contents: read  # Needed to check out code and read assets
     steps:
       - name: Restore Geodat Cache
         uses: actions/cache/restore@v5
